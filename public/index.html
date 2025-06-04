@@ -1,0 +1,135 @@
+<html>
+
+<head>
+  <title>Express</title>
+  <link rel="stylesheet" href="/stylesheets/style.css">
+</head>
+
+<body>
+  <h1>稻米價格查詢系統</h1>
+  <form id="searchForm">
+    <label for="type">選擇米種：</label>
+    <select id="type" name="type">
+      <option value="稉種白米零售價格(元/每公斤)">稉種白米零售價格(元/每公斤)</option>
+      <option value="硬秈白米零售價格(元/每公斤)">硬秈白米零售價格(元/每公斤)</option>
+      <option value="軟秈白米零售價格(元/每公斤)">軟秈白米零售價格(元/每公斤)</option>
+      <option value="圓糯白米零售價格(元/每公斤)">圓糯白米零售價格(元/每公斤)</option>
+      <option value="長糯白米零售價格(元/每公斤)">長糯白米零售價格(元/每公斤)</option>
+      <option value="稉種白米躉售價格(元/每百公斤)">稉種白米躉售價格(元/每百公斤)</option>
+      <option value="硬秈白米躉售價格(元/每百公斤)">硬秈白米躉售價格(元/每百公斤)</option>
+      <option value="軟秈白米躉售價格(元/每百公斤)">軟秈白米躉售價格(元/每百公斤)</option>
+      <option value="圓糯白米躉售價格(元/每百公斤)">圓糯白米躉售價格(元/每百公斤)</option>
+      <option value="長糯白米躉售價格(元/每百公斤)">長糯白米躉售價格(元/每百公斤)</option>
+      <option value="稻穀稉種價格(元/每百公斤)">稻穀稉種價格(元/每百公斤)</option>
+      <option value="稻穀硬秈價格(元/每百公斤)">稻穀硬秈價格(元/每百公斤)</option>
+      <option value="稻穀軟秈價格(元/每百公斤)">稻穀軟秈價格(元/每百公斤)</option>
+      <option value="稻穀圓糯價格(元/每百公斤)">稻穀圓糯價格(元/每百公斤)</option>
+      <option value="稻穀長糯價格(元/每百公斤)">稻穀長糯價格(元/每百公斤)</option>
+    </select>
+    <br><br>
+    <label for="city">選擇縣市：</label>
+    <select id="city" name="city">
+      <option value="基隆市">基隆市</option>
+      <option value="台北市">台北市</option>
+      <option value="新北市">新北市</option>
+      <option value="桃園市">桃園市</option>
+      <option value="新竹市">新竹市</option>
+      <option value="新竹縣">新竹縣</option>
+      <option value="苗栗縣">苗栗縣</option>
+      <option value="台中市">台中市</option>
+      <option value="彰化縣">彰化縣</option>
+      <option value="南投縣">南投縣</option>
+      <option value="雲林縣">雲林縣</option>
+      <option value="嘉義市">嘉義市</option>
+      <option value="嘉義縣">嘉義縣</option>
+      <option value="台南市">台南市</option>
+      <option value="高雄市">高雄市</option>
+      <option value="屏東縣">屏東縣</option>
+      <option value="宜蘭縣">宜蘭縣</option>
+      <option value="花蓮縣">花蓮縣</option>
+      <option value="台東縣">台東縣</option>
+      <option value="澎湖縣">澎湖縣</option>
+      <option value="金門縣">金門縣</option>
+      <option value="連江縣">連江縣</option>
+    </select>
+    <br><br>
+    <label for="startDate">開始日期：</label>
+    <input type="date" id="startDate" name="startDate">
+    <label for="endDate">結束日期：</label>
+    <input type="date" id="endDate" name="endDate">
+    <br><br>
+    <button type="submit">查詢</button>
+  </form>
+  <hr>
+  <div id="result">
+    <!-- 查詢結果表格會顯示在這裡 -->
+  </div>
+  <div id="query-params" style="margin-top: 2em; padding: 1em; background: #f8f8f8; border: 1px solid #ccc;">
+    <h3>查詢參數</h3>
+    <ul>
+      <li>type: <span id="param-type"></span></li>
+      <li>city: <span id="param-city"></span></li>
+      <li>startDate: <span id="param-startDate"></span></li>
+      <li>endDate: <span id="param-endDate"></span></li>
+    </ul>
+  </div>
+  <script>
+    function getQueryParam(name) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name) || '';
+    }
+
+    function updateQueryParamsDisplay() {
+      document.getElementById('param-type').textContent = getQueryParam('type');
+      document.getElementById('param-city').textContent = getQueryParam('city');
+      document.getElementById('param-startDate').textContent = getQueryParam('startDate');
+      document.getElementById('param-endDate').textContent = getQueryParam('endDate');
+    }
+
+    // 頁面載入時顯示參數並填入表單
+    window.addEventListener('DOMContentLoaded', async function() {
+      updateQueryParamsDisplay();
+      document.getElementById('type').value = getQueryParam('type') || document.getElementById('type').value;
+      document.getElementById('city').value = getQueryParam('city') || document.getElementById('city').value;
+      document.getElementById('startDate').value = getQueryParam('startDate') || '';
+      document.getElementById('endDate').value = getQueryParam('endDate') || '';
+
+      // 自動查詢並顯示表格
+      const type = getQueryParam('type');
+      const city = getQueryParam('city');
+      const startDate = getQueryParam('startDate');
+      const endDate = getQueryParam('endDate');
+      if (type && city && startDate && endDate) {
+        const params = new URLSearchParams({ type, city, startDate, endDate });
+        const res = await fetch(`/api/prices?${params.toString()}`);
+        const data = await res.json();
+        let html = '';
+        if (data.length === 0) {
+          html = '<p>查無資料</p>';
+        } else {
+          html = '<table border="1"><tr><th>縣市</th><th>日期</th><th>米種</th><th>價格</th></tr>';
+          data.forEach(row => {
+            html += `<tr><td>${row.city}</td><td>${row.date}</td><td>${row.type}</td><td>${row.price}</td></tr>`;
+          });
+          html += '</table>';
+        }
+        document.getElementById('result').innerHTML = html;
+      } else {
+        document.getElementById('result').innerHTML = '';
+      }
+    });
+
+    // 當表單送出時，導向帶參數的網址，並自動刷新顯示
+    document.getElementById('searchForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const type = document.getElementById('type').value;
+      const city = document.getElementById('city').value;
+      const startDate = document.getElementById('startDate').value;
+      const endDate = document.getElementById('endDate').value;
+      const params = new URLSearchParams({ type, city, startDate, endDate });
+      window.location.search = params.toString();
+    });
+  </script>
+</body>
+
+</html>
