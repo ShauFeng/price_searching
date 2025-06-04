@@ -5,10 +5,10 @@ var router = express.Router();
 router.get('/', function(req, res, next) {
   res.render('index', {
     title: 'Express',
-    city: req.query.city || '',
-    type: req.query.type || '',
-    startDate: req.query.startDate || '',
-    endDate: req.query.endDate || ''
+    city: '',
+    type: '',
+    startDate: '',
+    endDate: ''
   });
 });
 

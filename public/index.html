@@ -1,94 +1,189 @@
 <html>
 
 <head>
-  <title>Express</title>
+  <title>稻米價格查詢系統</title>
   <link rel="stylesheet" href="/stylesheets/style.css">
+  <style>
+    body {
+      background: #f6f8fa;
+      font-family: 'Segoe UI', 'Microsoft JhengHei', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 40px auto 0 auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      padding: 32px 32px 24px 32px;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 32px;
+      letter-spacing: 2px;
+    }
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px 24px;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      flex-direction: row;
+    }
+    .form-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .form-row.dates {
+      margin-top: 8px;
+      margin-bottom: 0;
+    }
+    form label {
+      min-width: 80px;
+      color: #34495e;
+      font-weight: bold;
+    }
+    form select, form input[type="date"] {
+      padding: 6px 10px;
+      border: 1px solid #bfc9d1;
+      border-radius: 4px;
+      background: #fafdff;
+      font-size: 15px;
+      color: #2c3e50;
+    }
+    form button {
+      background: #5b9df9;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-left: 12px;
+    }
+    form button:hover {
+      background: #357ae8;
+    }
+    #priceChart {
+      display: block;
+      margin: 0 auto 32px auto;
+      background: #f0f6ff;
+      border-radius: 12px;
+      box-shadow: 0 1px 8px rgba(44,62,80,0.09);
+      width: 100%;
+      max-width: 720px;
+      height: 260px;
+    }
+    #result {
+      margin-top: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fafdff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 6px rgba(44,62,80,0.07);
+    }
+    th, td {
+      padding: 10px 8px;
+      text-align: center;
+    }
+    th {
+      background: #5b9df9;
+      color: #fff;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    tr:nth-child(even) {
+      background: #f2f6f9;
+    }
+    tr:hover {
+      background: #e0f7fa;
+    }
+    @media (max-width: 600px) {
+      .container { padding: 10px; }
+      form { flex-direction: column; gap: 10px; }
+      #priceChart { width: 100% !important; }
+    }
+  </style>
 </head>
 
 <body>
-  <h1>稻米價格查詢系統</h1>
-  <form id="searchForm">
-    <label for="type">選擇米種：</label>
-    <select id="type" name="type">
-      <option value="稉種白米零售價格(元/每公斤)">稉種白米零售價格(元/每公斤)</option>
-      <option value="硬秈白米零售價格(元/每公斤)">硬秈白米零售價格(元/每公斤)</option>
-      <option value="軟秈白米零售價格(元/每公斤)">軟秈白米零售價格(元/每公斤)</option>
-      <option value="圓糯白米零售價格(元/每公斤)">圓糯白米零售價格(元/每公斤)</option>
-      <option value="長糯白米零售價格(元/每公斤)">長糯白米零售價格(元/每公斤)</option>
-      <option value="稉種白米躉售價格(元/每百公斤)">稉種白米躉售價格(元/每百公斤)</option>
-      <option value="硬秈白米躉售價格(元/每百公斤)">硬秈白米躉售價格(元/每百公斤)</option>
-      <option value="軟秈白米躉售價格(元/每百公斤)">軟秈白米躉售價格(元/每百公斤)</option>
-      <option value="圓糯白米躉售價格(元/每百公斤)">圓糯白米躉售價格(元/每百公斤)</option>
-      <option value="長糯白米躉售價格(元/每百公斤)">長糯白米躉售價格(元/每百公斤)</option>
-      <option value="稻穀稉種價格(元/每百公斤)">稻穀稉種價格(元/每百公斤)</option>
-      <option value="稻穀硬秈價格(元/每百公斤)">稻穀硬秈價格(元/每百公斤)</option>
-      <option value="稻穀軟秈價格(元/每百公斤)">稻穀軟秈價格(元/每百公斤)</option>
-      <option value="稻穀圓糯價格(元/每百公斤)">稻穀圓糯價格(元/每百公斤)</option>
-      <option value="稻穀長糯價格(元/每百公斤)">稻穀長糯價格(元/每百公斤)</option>
-    </select>
-    <br><br>
-    <label for="city">選擇縣市：</label>
-    <select id="city" name="city">
-      <option value="基隆市">基隆市</option>
-      <option value="台北市">台北市</option>
-      <option value="新北市">新北市</option>
-      <option value="桃園市">桃園市</option>
-      <option value="新竹市">新竹市</option>
-      <option value="新竹縣">新竹縣</option>
-      <option value="苗栗縣">苗栗縣</option>
-      <option value="台中市">台中市</option>
-      <option value="彰化縣">彰化縣</option>
-      <option value="南投縣">南投縣</option>
-      <option value="雲林縣">雲林縣</option>
-      <option value="嘉義市">嘉義市</option>
-      <option value="嘉義縣">嘉義縣</option>
-      <option value="台南市">台南市</option>
-      <option value="高雄市">高雄市</option>
-      <option value="屏東縣">屏東縣</option>
-      <option value="宜蘭縣">宜蘭縣</option>
-      <option value="花蓮縣">花蓮縣</option>
-      <option value="台東縣">台東縣</option>
-      <option value="澎湖縣">澎湖縣</option>
-      <option value="金門縣">金門縣</option>
-      <option value="連江縣">連江縣</option>
-    </select>
-    <br><br>
-    <label for="startDate">開始日期：</label>
-    <input type="date" id="startDate" name="startDate">
-    <label for="endDate">結束日期：</label>
-    <input type="date" id="endDate" name="endDate">
-    <br><br>
-    <button type="submit">查詢</button>
-  </form>
-  <hr>
-  <div id="result">
-    <!-- 查詢結果表格會顯示在這裡 -->
+  <div class="container">
+    <h1>稻米價格查詢系統</h1>
+    <form id="searchForm">
+      <label for="type">選擇米種：</label>
+      <select id="type" name="type">
+        <option value="稉種白米零售價格(元/每公斤)">稉種白米零售價格(元/每公斤)</option>
+        <option value="硬秈白米零售價格(元/每公斤)">硬秈白米零售價格(元/每公斤)</option>
+        <option value="軟秈白米零售價格(元/每公斤)">軟秈白米零售價格(元/每公斤)</option>
+        <option value="圓糯白米零售價格(元/每公斤)">圓糯白米零售價格(元/每公斤)</option>
+        <option value="長糯白米零售價格(元/每公斤)">長糯白米零售價格(元/每公斤)</option>
+        <option value="稉種白米躉售價格(元/每百公斤)">稉種白米躉售價格(元/每百公斤)</option>
+        <option value="硬秈白米躉售價格(元/每百公斤)">硬秈白米躉售價格(元/每百公斤)</option>
+        <option value="軟秈白米躉售價格(元/每百公斤)">軟秈白米躉售價格(元/每百公斤)</option>
+        <option value="圓糯白米躉售價格(元/每百公斤)">圓糯白米躉售價格(元/每百公斤)</option>
+        <option value="長糯白米躉售價格(元/每百公斤)">長糯白米躉售價格(元/每百公斤)</option>
+        <option value="稻穀稉種價格(元/每百公斤)">稻穀稉種價格(元/每百公斤)</option>
+        <option value="稻穀硬秈價格(元/每百公斤)">稻穀硬秈價格(元/每百公斤)</option>
+        <option value="稻穀軟秈價格(元/每百公斤)">稻穀軟秈價格(元/每百公斤)</option>
+        <option value="稻穀圓糯價格(元/每百公斤)">稻穀圓糯價格(元/每百公斤)</option>
+        <option value="稻穀長糯價格(元/每百公斤)">稻穀長糯價格(元/每百公斤)</option>
+      </select>
+      <label for="city">選擇縣市：</label>
+      <select id="city" name="city">
+        <option value="基隆市">基隆市</option>
+        <option value="台北市">台北市</option>
+        <option value="新北市">新北市</option>
+        <option value="桃園市">桃園市</option>
+        <option value="新竹市">新竹市</option>
+        <option value="新竹縣">新竹縣</option>
+        <option value="苗栗縣">苗栗縣</option>
+        <option value="台中市">台中市</option>
+        <option value="彰化縣">彰化縣</option>
+        <option value="南投縣">南投縣</option>
+        <option value="雲林縣">雲林縣</option>
+        <option value="嘉義市">嘉義市</option>
+        <option value="嘉義縣">嘉義縣</option>
+        <option value="台南市">台南市</option>
+        <option value="高雄市">高雄市</option>
+        <option value="屏東縣">屏東縣</option>
+        <option value="宜蘭縣">宜蘭縣</option>
+        <option value="花蓮縣">花蓮縣</option>
+        <option value="台東縣">台東縣</option>
+        <option value="澎湖縣">澎湖縣</option>
+        <option value="金門縣">金門縣</option>
+        <option value="連江縣">連江縣</option>
+      </select>
+      <div class="form-row dates">
+        <label for="startDate">開始日期：</label>
+        <input type="date" id="startDate" name="startDate" min="2025-04-16" max="2025-06-04">
+        <label for="endDate">結束日期：</label>
+        <input type="date" id="endDate" name="endDate" min="2025-04-16" max="2025-06-04">
+      </div>
+      <button type="submit">查詢</button>
+    </form>
+    <canvas id="priceChart" width="720" height="260" style="max-width:100%;"></canvas>
+    <div id="result">
+      <!-- 查詢結果表格會顯示在這裡 -->
+    </div>
   </div>
-  <div id="query-params" style="margin-top: 2em; padding: 1em; background: #f8f8f8; border: 1px solid #ccc;">
-    <h3>查詢參數</h3>
-    <ul>
-      <li>type: <span id="param-type"></span></li>
-      <li>city: <span id="param-city"></span></li>
-      <li>startDate: <span id="param-startDate"></span></li>
-      <li>endDate: <span id="param-endDate"></span></li>
-    </ul>
-  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     function getQueryParam(name) {
       const url = new URL(window.location.href);
       return url.searchParams.get(name) || '';
     }
 
-    function updateQueryParamsDisplay() {
-      document.getElementById('param-type').textContent = getQueryParam('type');
-      document.getElementById('param-city').textContent = getQueryParam('city');
-      document.getElementById('param-startDate').textContent = getQueryParam('startDate');
-      document.getElementById('param-endDate').textContent = getQueryParam('endDate');
-    }
-
-    // 頁面載入時顯示參數並填入表單
+    // 頁面載入時填入表單
     window.addEventListener('DOMContentLoaded', async function() {
-      updateQueryParamsDisplay();
       document.getElementById('type').value = getQueryParam('type') || document.getElementById('type').value;
       document.getElementById('city').value = getQueryParam('city') || document.getElementById('city').value;
       document.getElementById('startDate').value = getQueryParam('startDate') || '';
@@ -107,15 +202,61 @@
         if (data.length === 0) {
           html = '<p>查無資料</p>';
         } else {
+          // 依日期排序由小到大
+          const sorted = data.slice().sort((a, b) => {
+            const aParts = a.date.split('.').map(Number);
+            const bParts = b.date.split('.').map(Number);
+            if (aParts[0] !== bParts[0]) return aParts[0] - bParts[0];
+            if (aParts[1] !== bParts[1]) return aParts[1] - bParts[1];
+            return aParts[2] - bParts[2];
+          });
           html = '<table border="1"><tr><th>縣市</th><th>日期</th><th>米種</th><th>價格</th></tr>';
-          data.forEach(row => {
-            html += `<tr><td>${row.city}</td><td>${row.date}</td><td>${row.type}</td><td>${row.price}</td></tr>`;
+          sorted.forEach(row => {
+            html += `<tr><td>${row.city}</td><td>${row.date}</td><td>${row.type}</td><td>${row.value}</td></tr>`;
           });
           html += '</table>';
         }
         document.getElementById('result').innerHTML = html;
+
+        // 圖表資料處理（保持原本順序）
+        const chartData = data.map(row => ({
+          date: row.date,
+          value: parseFloat(row.value)
+        }));
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        if(window.priceChartInstance) window.priceChartInstance.destroy();
+        window.priceChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: chartData.map(d => d.date),
+            datasets: [{
+              label: '價格',
+              data: chartData.map(d => d.value),
+              borderColor: 'rgba(100, 149, 237, 1)', // 柔和淡藍
+              backgroundColor: 'rgba(100, 149, 237, 0.15)', // 柔和淡藍
+              pointBackgroundColor: 'rgba(100, 149, 237, 0.7)',
+              pointBorderColor: 'rgba(100, 149, 237, 1)',
+              fill: true,
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: true },
+              title: {
+                display: true,
+                text: `${city} - ${type} 價格走勢圖`
+              }
+            },
+            scales: {
+              x: { title: { display: true, text: '日期' } },
+              y: { title: { display: true, text: '價格' } }
+            }
+          }
+        });
       } else {
         document.getElementById('result').innerHTML = '';
+        if(window.priceChartInstance) window.priceChartInstance.destroy();
       }
     });
 
@@ -133,3 +274,4 @@
 </body>
 
 </html>
+
