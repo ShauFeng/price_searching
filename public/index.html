@@ -219,7 +219,13 @@
         document.getElementById('result').innerHTML = html;
 
         // 圖表資料處理（保持原本順序）
-        const chartData = data.map(row => ({
+        const chartData = data.slice().sort((a, b) => {
+          const aParts = a.date.split('.').map(Number);
+          const bParts = b.date.split('.').map(Number);
+          if (aParts[0] !== bParts[0]) return aParts[0] - bParts[0];
+          if (aParts[1] !== bParts[1]) return aParts[1] - bParts[1];
+          return aParts[2] - bParts[2];
+        }).map(row => ({
           date: row.date,
           value: parseFloat(row.value)
         }));
@@ -250,7 +256,7 @@
             },
             scales: {
               x: { title: { display: true, text: '日期' } },
-              y: { title: { display: true, text: '價格' } }
+              y: { title: { display: true, text: '價格' }, }
             }
           }
         });
