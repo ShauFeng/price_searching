@@ -1,84 +1,86 @@
 const express = require('express');
-const fs = require('fs');
-const csv = require('csv-parser');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 const router = express.Router();
+
+// 連接 SQLite 資料庫
+const dbPath = path.join(__dirname, '../rice.db');
+const db = new sqlite3.Database(dbPath);
+
+// 初始化資料表（如果不存在就建立）
+db.serialize(() => {
+  db.run(`CREATE TABLE IF NOT EXISTS prices (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    city TEXT,
+    date TEXT,
+    type TEXT,
+    value TEXT
+  )`);
+});
 
 // /api/prices?type=...&startDate=...&endDate=...&city=...
 router.get('/prices', (req, res) => {
   const { type, startDate, endDate, city } = req.query;
-  const results = [];
+  if (!type || !startDate || !endDate || !city) {
+    return res.json([]);
+  }
   // 日期轉民國年格式
   function toROC(dateStr) {
     if (!dateStr) return '';
     const [y, m, d] = dateStr.split('-');
-    return `${parseInt(y, 10) - 1911}.${parseInt(m, 10)}.${parseInt(d, 10)}`;
+    return `${parseInt(y, 10) - 1911}.${m.padStart(2, '0')}.${d.padStart(2, '0')}`;
   }
-  // 補零函數，讓日期格式統一為 114.06.04
-  function padROCDate(rocDate) {
-    if (!rocDate) return '';
-    const [y, m, d] = rocDate.split('.');
-    return `${y.padStart(3, '0')}.${m.padStart(2, '0')}.${d.padStart(2, '0')}`;
-  }
-  const start = padROCDate(toROC(startDate));
-  const end = padROCDate(toROC(endDate));
-  const priceCsvPath = __dirname + '/../price.csv';
+  const start = toROC(startDate);
+  const end = toROC(endDate);
+  // 查詢資料庫
+  db.all(
+    `SELECT city, date, type, value FROM prices WHERE city = ? AND type = ? AND date >= ? AND date <= ?`,
+    [city, type, start, end],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows.map(row => ({
+        city: row.city,
+        date: row.date,
+        type: row.type,
+        value: row.value
+      })));
+    }
+  );
+});
+
+// 匯入 CSV 到 SQLite 的 API（僅供初始化用）
+const fs = require('fs');
+const csv = require('csv-parser');
+router.get('/import', (req, res) => {
+  const priceCsvPath = path.join(__dirname, '../price.csv');
+  const prices = [];
   fs.createReadStream(priceCsvPath)
     .pipe(csv())
     .on('data', (row) => {
-      // 民國日期比對，補零
-      const rowDate = row['日期'] && padROCDate(row['日期'].replace(/\s/g, ''));
-      // 處理 BOM 問題，並同時支援 '縣市' 與 '﻿縣市' 欄位
-      const rowCity = (row['縣市'] || row['﻿縣市'] || '').replace(/\s/g, '');
-      // 取出 type 欄位的值，處理 BOM 與所有可能的空白
-      let typeValue = '';
-      if (type) {
-        // 嘗試所有可能的欄位名稱（去除空白、BOM）
-        const possibleTypeKeys = [
-          type,
-          type.replace(/\s/g, ''),
-          '\uFEFF' + type,
-          '\uFEFF' + type.replace(/\s/g, '')
-        ];
-        for (const key of possibleTypeKeys) {
-          if (row[key] !== undefined) {
-            typeValue = row[key];
-            break;
-          }
+      const city = (row['縣市'] || row['﻿縣市'] || '').replace(/\s/g, '');
+      const date = (row['日期'] || '').replace(/\s/g, '');
+      // 只匯入有用的欄位
+      Object.keys(row).forEach(key => {
+        if (key.includes('價格')) {
+          prices.push({
+            city,
+            date,
+            type: key.replace(/\s/g, ''),
+            value: (row[key] || '').replace(/\s/g, '')
+          });
         }
-        typeValue = typeValue.replace(/\s/g, '');
-      }
-      if (typeValue === '' && type) {
-        // 再嘗試所有欄位名去除所有全形/半形空白後比對
-        const normalize = s => s.replace(/[\s\u3000]/g, '');
-        const typeNorm = normalize(type);
-        for (const key in row) {
-          if (normalize(key) === typeNorm) {
-            typeValue = row[key];
-            break;
-          }
-        }
-        typeValue = typeValue.replace(/\s/g, '');
-      }
-      // 日期範圍、縣市、type 欄位比對
-      if (
-        (!city || rowCity === city) &&
-        rowDate && start <= rowDate && rowDate <= end &&
-        type && typeValue && typeValue !== '0'
-      ) {
-        // 只回傳有 type 欄位值的資料
-        results.push({
-          city: rowCity,
-          date: rowDate,
-          type: type,
-          value: typeValue
-        });
-      }
+      });
     })
     .on('end', () => {
-      res.json(results);
-    })
-    .on('error', (err) => {
-      res.status(500).json({ error: err.message });
+      db.serialize(() => {
+        db.run('DELETE FROM prices');
+        const stmt = db.prepare('INSERT INTO prices (city, date, type, value) VALUES (?, ?, ?, ?)');
+        prices.forEach(p => {
+          stmt.run(p.city, p.date, p.type, p.value);
+        });
+        stmt.finalize();
+        res.json({ message: '匯入完成', count: prices.length });
+      });
     });
 });
 
